@@ -45,8 +45,8 @@ public class Reporting {
 	public static void mode2(Connection connection){
 		System.out.printf("Enter Doctor ID:");
 		String id = System.console().readLine();
-		//TODOODODODODODO
-		String q = "SELECT * FROM Doctors WHERE SSN =" + id + "";
+		String q = "select Doctors.ID as ID, First_Name, Last_Name, Gender  FROM (Doctors INNER JOIN Employees ON Doctors.ID = Employees.ID) WHERE Doctors.ID =\'" + id + "\'";
+//		System.out.printf("Query:%s\n", q);
 		try {
 		Statement stmt = connection.createStatement();
 		ResultSet res = stmt.executeQuery(q);
