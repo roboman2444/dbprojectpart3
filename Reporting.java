@@ -40,8 +40,10 @@ public class Reporting {
 					res.getString("Last_Name"),
 					res.getString("Address"));
 			} else System.out.printf("No results\n");
+			stmt.close(); res.close();
 		} catch (SQLException e) { System.out.printf("error:%s\n", e.getMessage());}
 	}
+
 	public static void mode2(Connection connection){
 		System.out.printf("Enter Doctor ID:");
 		String id = System.console().readLine();
@@ -61,11 +63,82 @@ public class Reporting {
 					res.getString("Last_Name"),
 					res.getString("Gender"));
 			} else System.out.printf("No results\n");
+			stmt.close(); res.close();
 		} catch (SQLException e) { System.out.printf("error:%s\n", e.getMessage());}
 	}
+
 	public static void mode3(Connection connection){
+		System.out.printf("Enter Admission Number (ID):");
+		String id = System.console().readLine();
+		//get misc info
+		String q = "select ID, Patiendid, STARTDATE, TotalPayment from admissions where ID = \'" + id + "\'";
+		try {
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery(q);
+			if(res.next()){
+				System.out.printf(
+					"Admission Number (ID):%s\n" +
+					"Patient SSN:%s\n"+
+					"Admission date (start date):%s\n"+
+					"Total Payment:%s\n",
+					res.getString("ID"),
+					res.getString("Patiendid"),
+					res.getString("StartDate"),
+					res.getString("TotalPayment"));
+			} else { System.out.printf("No results\n"); return; }
+			stmt.close(); res.close();
+		} catch (SQLException e) { System.out.printf("error:%s\n", e.getMessage());}
+
+
+		//get room info (stays)
+		System.out.printf("Rooms:\n");
+		q = "select ROOM, ENTRY, EXIT from stays where Admission = \'" + id + "\'";
+		try {
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery(q);
+			int i;
+			for(i = 0; res.next(); i++){
+				System.out.printf(
+					"\tRoomNum:%s\t" +
+					"FromDate:%s\t"+
+					"ToDate:%s\n",
+					res.getString("ROOM"),
+					res.getString("ENTRY"),
+					res.getString("EXIT"));
+			} if(i == 0)System.out.printf("No results\n");
+			stmt.close(); res.close();
+		} catch (SQLException e) { System.out.printf("error:%s\n", e.getMessage());}
+
+
+		//get examinations info
+		//TODO might have an issue for multiple examinations by the same doctor.... should be put a group by on it?
+		System.out.printf("Doctors examined the patient in this admission:\n");
+		q = " select DOCTOR from examinations where ADMISSION = \'" + id + "\'";
+		try {
+		Statement stmt = connection.createStatement();
+		ResultSet res = stmt.executeQuery(q);
+			int i;
+			for(i = 0; res.next(); i++){
+				System.out.printf(
+					"\tDoctor ID:%s\n",
+					res.getString("DOCTOR"));
+			} if(i == 0)System.out.printf("No results\n");
+			stmt.close(); res.close();
+		} catch (SQLException e) { System.out.printf("error:%s\n", e.getMessage());}
 	}
 	public static void mode4(Connection connection){
+		System.out.printf("Enter Admission Number (ID):");
+		String id = System.console().readLine();
+		System.out.printf("Enter the new total payment:");
+		String pay = System.console().readLine();
+		String q = "update Admissions set TotalPayment=\'" + pay + "\' where id=\'" + id + "\'";
+//		System.out.printf("Query:%s\n", q);
+		try {
+		Statement stmt = connection.createStatement();
+		stmt.executeUpdate(q);
+		stmt.close();
+		} catch (SQLException e) { System.out.printf("error:%s\n", e.getMessage()); return;}
+		System.out.printf("Success!\n");
 	}
 
     public static void main(String[] argv) {
@@ -117,6 +190,9 @@ public class Reporting {
 		default: System.out.printf("Invalid mode %s\n", argv[2]); Usage(); return;
 	}
 
+	try {
+		connection.close();
+	} catch (SQLException e) { System.out.printf("error:%s\n", e.getMessage());}
     }
 
 }
